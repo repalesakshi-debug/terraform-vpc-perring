@@ -1,0 +1,12 @@
+@"
+.terraform/
+*.tfstate
+*.tfstate.*
+terraform.tfstate.backup
+*.tfvars
+*.pem
+crash.log
+override.tf
+override.tf.json
+"@ | Out-File -Encoding utf8 .gitignore
+terraform.lock.hcl

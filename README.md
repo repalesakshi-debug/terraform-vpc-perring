@@ -1,173 +1,233 @@
 # AWS Cross-Region VPC Peering Using Terraform
 
-## 📌 Project Overview
+## Project Overview
 
-This project demonstrates the provisioning of AWS networking infrastructure and the establishment of a cross-region VPC Peering connection using **Terraform**.
+This project demonstrates how to create **cross-region VPC peering on AWS using Terraform**. It connects two Virtual Private Clouds (VPCs) deployed in different AWS regions, enabling private communication between resources across the VPCs.
 
-The solution connects two Amazon Virtual Private Clouds (VPCs) deployed in different AWS regions, enabling private communication between resources using their private IP addresses.
+The infrastructure is provisioned using Infrastructure as Code (IaC), making deployment repeatable and easier to manage.
 
-The infrastructure is managed as code (IaC), making it repeatable, maintainable, and easier to version-control.
+## Architecture
 
-## 🎯 Objectives
+The project deploys two VPCs in separate AWS regions:
 
-- Provision two VPCs in separate AWS regions.
-- Configure non-overlapping CIDR blocks and subnets.
-- Establish a cross-region VPC Peering connection.
-- Configure route tables to enable private network communication.
-- Validate the peering connection using AWS CLI.
-- Manage infrastructure using Terraform.
+- **Primary Region:** US East (N. Virginia) — `us-east-1`
+- **Secondary Region:** US West (Oregon) — `us-west-2`
 
-## 🏗️ Architecture
+The VPCs are connected using an AWS VPC Peering Connection, with appropriate route table entries to enable traffic between their private CIDR ranges.
 
-The project uses two VPCs:
+```text
+          AWS Cloud
+             |
+     +-------+--------+
+     |                |
+ Primary VPC      Secondary VPC
+ 10.0.0.0/16      10.1.0.0/16
+ us-east-1        us-west-2
+     |                |
+ Public Subnet    Public Subnet
+ 10.0.1.0/24      10.1.1.0/24
+     |                |
+    EC2              EC2
+     |                |
+     +--- VPC Peering-+
+        Private Routing
+```
+
+## Technologies Used
+
+- Amazon Web Services (AWS)
+- Terraform
+- AWS VPC and Subnets
+- AWS VPC Peering
+- Amazon EC2
+- AWS Route Tables
+- AWS Security Groups
+- Git and GitHub
+
+## Network Configuration
 
 | Component | Primary VPC | Secondary VPC |
 |---|---|---|
 | AWS Region | `us-east-1` | `us-west-2` |
 | VPC CIDR | `10.0.0.0/16` | `10.1.0.0/16` |
 | Subnet CIDR | `10.0.1.0/24` | `10.1.1.0/24` |
-| Example EC2 private IP | `10.0.1.84` | `10.1.1.103` |
+| Instance Type | `t3.micro` | `t3.micro` |
 
-### Architecture Flow
+## Key Features
 
-Primary VPC (`us-east-1`)  
-`10.0.0.0/16`
+- Creates VPC infrastructure across two AWS regions.
+- Establishes a cross-region VPC peering connection.
+- Configures routes for communication between VPC CIDR blocks.
+- Uses Terraform to manage infrastructure as code.
+- Deploys EC2 instances for connectivity testing.
+- Organizes network configuration using Terraform variables and outputs.
 
-⬇️ Cross-Region VPC Peering
+## Project Structure
 
-Secondary VPC (`us-west-2`)  
-`10.1.0.0/16`
+```text
+terraform-vpc-perring/
+├── screenshots/
+│   ├── peering.png
+│   ├── primary_vpc.png
+│   ├── secondary_vpc.png
+│   ├── primary_rt.png
+│   ├── secondary_rt.png
+│   ├── EC2_1.png
+│   └── EC2_2.png
+├── backend.tf
+├── data.tf
+├── local.tf
+├── main.tf
+├── output.tf
+├── provider.tf
+├── variables.tf
+├── terraform.tfvars
+├── .gitignore
+└── README.md
+```
 
-## 🛠️ Technologies Used
-
-- **Amazon Web Services (AWS)**
-  - Amazon VPC
-  - VPC Peering
-  - Amazon EC2
-  - Route Tables
-  - Security Groups
-- **Terraform** — Infrastructure as Code
-- **AWS CLI** — Infrastructure verification
-- **Git and GitHub** — Version control
-
-## ⚙️ Prerequisites
+## Prerequisites
 
 Before deploying this project, ensure you have:
 
-- An AWS account with appropriate IAM permissions.
-- Terraform installed.
+- An AWS account.
 - AWS CLI installed and configured.
-- An SSH key pair available in each required AWS region.
+- Terraform installed.
 - Git installed.
-- An understanding of VPCs, CIDR blocks, routing, and security groups.
+- Appropriate AWS IAM permissions to create VPCs, subnets, route tables, peering connections, security groups, and EC2 instances.
+- Valid EC2 key pairs if SSH access is required.
 
-## 🚀 Deployment Guide
+## Deployment Steps
 
+### 1. Clone the repository
 
-### 1. Configure Variables
-
-Update your `terraform.tfvars` file with the required configuration:
-
-```hcl
-primary_region   = "us-east-1"
-secondary_region = "us-west-2"
-
-primary_vpc_cidr   = "10.0.0.0/16"
-secondary_vpc_cidr = "10.1.0.0/16"
-
-primary_subnet_cidr   = "10.0.1.0/24"
-secondary_subnet_cidr = "10.1.1.0/24"
-
-instance_type = "t3.micro"
-
-primary_key_name   = "vpc-peering-demo-east"
-secondary_key_name = "vpc-peering-demo-west"
+```bash
+git clone https://github.com/repalesakshi-debug/terraform-vpc-perring.git
+cd terraform-vpc-perring
 ```
 
-Keep sensitive or environment-specific variable files out of version control.
+### 2. Configure AWS credentials
 
-### 2. Initialize Terraform
+```bash
+aws configure
+```
+
+Configure credentials with appropriate permissions. Avoid hardcoding AWS access keys in Terraform files or committing them to GitHub.
+
+### 3. Configure variables
+
+Review `terraform.tfvars` and verify the AWS regions, VPC CIDRs, subnet CIDRs, instance type, and EC2 key pair names.
+
+Ensure the CIDR blocks do not overlap.
+
+### 4. Initialize Terraform
 
 ```bash
 terraform init
 ```
 
-### 3. Validate the Configuration
+### 5. Validate the configuration
 
 ```bash
-terraform fmt -recursive
 terraform validate
 ```
 
-### 4. Review the Execution Plan
+### 6. Review the execution plan
 
 ```bash
 terraform plan
 ```
 
-### 5. Deploy the Infrastructure
+### 7. Deploy the infrastructure
 
 ```bash
 terraform apply
 ```
 
-Review the plan and confirm the deployment when prompted.
+Review the proposed changes and confirm the deployment when prompted.
 
-> Note: The commands above assume the Terraform configuration is in the repository root. If the configuration uses separate directories or Terraform workspaces, run the commands from the appropriate location.
+## VPC Peering Configuration
 
-## 🔗 VPC Peering Configuration
+After creating the peering connection, ensure it is accepted and its status is `active`.
 
-After the peering connection is created and accepted, configure the relevant route tables.
+Both VPC route tables must include routes to the remote VPC:
 
-**Primary VPC route:**
+| Route Table | Destination CIDR | Target |
+|---|---|---|
+| Primary VPC | `10.1.0.0/16` | VPC Peering Connection |
+| Secondary VPC | `10.0.0.0/16` | VPC Peering Connection |
 
-| Destination | Target |
-|---|---|
-| `10.1.0.0/16` | VPC Peering connection |
+The actual peering connection ID is generated by AWS and can be retrieved from Terraform outputs or the AWS Console.
 
-**Secondary VPC route:**
+## Verification
 
-| Destination | Target |
-|---|---|
-| `10.0.0.0/16` | VPC Peering connection |
+### 1. Verify the peering connection
 
-Ensure that the security groups and network ACLs allow the intended traffic.
+Open **AWS Console → VPC → Peering connections** and confirm that the connection status is `Active`.
 
+### 2. Verify route tables
 
-Check route tables and test private connectivity between EC2 instances where ICMP traffic is permitted.
+Check both VPC route tables and confirm that each contains a route to the other VPC's CIDR block through the peering connection.
 
-Example:
+### 3. Test connectivity
+
+If the EC2 instances and security groups are configured to allow ICMP traffic, test connectivity between their private IP addresses.
+
+For example, from the primary EC2 instance:
 
 ```bash
-ping 10.1.1.103
+ping <SECONDARY_EC2_PRIVATE_IP>
 ```
 
-Successful connectivity depends on correct routes, security rules, and instance availability.
+Replace the placeholder with the actual private IP address of the secondary instance.
 
-## 🔐 Security Best Practices
+Successful connectivity depends on the route tables, security groups, network ACLs, instance configuration, and operating-system firewall.
 
-- Never commit AWS access keys, private keys, or credentials.
-- Exclude Terraform state files and sensitive variable files from Git.
-- Use least-privilege IAM permissions.
-- Restrict security group rules to required traffic only.
-- Use encrypted remote state storage with appropriate access controls when using a remote backend.
-- Review infrastructure changes before applying them.
+## Screenshots
 
-## 📚 Key Learnings
+The `screenshots/` directory contains visual evidence of the project, including VPCs, peering status, route tables, and EC2 instances.
 
-- Infrastructure provisioning using Terraform.
+- **VPC Peering:** `screenshots/peering.png`
+- **Primary VPC:** `screenshots/primary_vpc.png`
+- **Secondary VPC:** `screenshots/secondary_vpc.png`
+- **Primary Route Table:** `screenshots/primary_rt.png`
+- **Secondary Route Table:** `screenshots/secondary_rt.png`
+- **EC2 Instances:** `screenshots/EC2_1.png` and `screenshots/EC2_2.png`
+
+## Security Considerations
+
+- Follow the principle of least privilege for IAM permissions.
+- Restrict SSH access to trusted IP addresses.
+- Allow only the required traffic in security groups.
+- Never commit AWS credentials, private keys, or sensitive state files.
+- Remember that VPC peering is not transitive.
+
+## Cleanup
+
+To avoid ongoing AWS charges, destroy resources when they are no longer required.
+
+```bash
+terraform plan -destroy
+terraform destroy
+```
+
+Review the proposed deletions carefully before confirming. If Terraform uses a remote backend, ensure the state is available and current before destroying resources.
+
+## What I Learned
+
+Through this project, I gained practical experience with:
+
 - AWS networking across multiple regions.
-- VPC Peering and private IP connectivity.
-- Route table configuration and traffic flow.
-- AWS CLI-based infrastructure verification.
-- Infrastructure version control using Git and GitHub.
+- VPC peering and private routing.
+- Terraform infrastructure provisioning.
+- Route table and security group configuration.
+- Infrastructure validation and troubleshooting.
+- Git and GitHub project documentation.
 
-## 👩‍💻 Author
+## Author
 
 **Sakshi Repale**
 
-Aspiring AWS & DevOps Engineer
+GitHub: [repalesakshi-debug](https://github.com/repalesakshi-debug)
 
----
-
-*This project was developed for hands-on learning and practical exploration of AWS networking and Infrastructure as Code.*
+Project Repository: [terraform-vpc-perring](https://github.com/repalesakshi-debug/terraform-vpc-perring)
